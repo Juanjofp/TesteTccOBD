@@ -26,17 +26,19 @@ import {
 
 import { Actions } from 'react-native-router-flux';
 import { List } from 'react-native-elements';
-import Menu, { MenuContext, MenuOptions, MenuOption, MenuTrigger } from 'react-native-menu';
-import NavigationBar from 'react-native-navbar';
+import Menu, { MenuContext, MenuOptions, MenuOption, MenuTrigger } from 'react-native-menu'; // Do not work correctly
+import NavigationBar from 'react-native-navbar'; // Do not work correctly
 import SharedPreference from 'react-native-sp';
 
 import AppEventEmitter from '../services/AppEventEmitter';
 
 const obd2 = require('react-native-obd2');
-const SensorManager = require('NativeModules').SensorManager;
+//const SensorManager = require('NativeModules').SensorManager; // Do not work correctly
 
 const Color = require('../utils/Color');
 const Constant = require('../utils/Constant');
+
+console.log('OBD2 Instance', obd2);
 
 export default class OBDReader extends Component {
     constructor(props) {
@@ -51,7 +53,7 @@ export default class OBDReader extends Component {
             gpsState: '-',
             btStatus : '-',
             btDeviceList: [],
-            btSelectedDeviceAddress: '08 00 00 36 74 d9',
+            btSelectedDeviceAddress: '08:00:00:36:74:d9',// Pon a mano tu mac
             obdStatus: 'disconnected',
             debug : '-',
             obd2Data : { }
@@ -145,11 +147,13 @@ export default class OBDReader extends Component {
 
     onReady() {
         obd2.ready();
+        this.startLiveData();
     }
 
     startLiveData() {
         SharedPreference.getBoolean(Constant.KEY_ENABLE_MOCKUP)
-            .then((isMockUpMode) => {
+            .then((/*isMockUpMode*/) => {
+                const isMockUpMode = true; // Descomenta la linea anterior y comenta esta linea
                 if (!isMockUpMode && this.state.btSelectedDeviceAddress.length === 0) {
                     Alert.alert(
                         'Bluetooth Device',
@@ -165,7 +169,7 @@ export default class OBDReader extends Component {
                     isStartLiveData: true,
                 });
 
-                SensorManager.startOrientation(1000);
+                //SensorManager.startOrientation(1000);
                 this.listenerOrientation = DeviceEventEmitter.addListener('Orientation', this.sensorOrientation);
                 obd2.setMockUpMode(isMockUpMode);
                 obd2.startLiveData(this.state.btSelectedDeviceAddress);
@@ -178,7 +182,7 @@ export default class OBDReader extends Component {
             direction: '-',
             bluetoothStatus: '-',
         });
-        SensorManager.stopOrientation();
+        //SensorManager.stopOrientation();
         this.obdLiveDataListener && this.obdLiveDataListener.remove();
         this.listenerOrientation && this.listenerOrientation.remove();
         obd2.stopLiveData();
@@ -245,7 +249,7 @@ export default class OBDReader extends Component {
             <MenuContext style={{flex: 1}}>
                 <View style={{flex: 1}}>
                     <NavigationBar
-                        style={{flex: 0.1, backgroundColor: Color.BG_NAVIBAR}}
+                        style={{height: 52,backgroundColor: Color.BG_NAVIBAR}}
                         tintColor={Color.WHITE}
                         title={{title: 'OBD-II Reader', tintColor:Color.WHITE}}
                         rightButton={
